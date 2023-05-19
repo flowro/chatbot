@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Conversational Bot</title>
+        <style>
+            #chatbox {
+                white-space: pre-wrap; /* To respect newline character in text */
+            }
+        </style>
+        <meta charset="UTF-8">
+    </head>
+    <body>
+        <div id="chatbox">
+            <!-- Chat messages will go here -->
+        </div>
+        <input type="text" id="inputbox" placeholder="Type your question...">
+
+        <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+        <script>
+            var typingSpeed = 50; // ms between characters
+            var isTyping = false;
+
+            function typeMessage(message, callback) {
+                isTyping = true;
+                var i = 0;
+                var interval = setInterval(function() {
+                    $('#chatbox').append(message[i]);
+                    i++;
+                    if (i >= message.length) {
+                        clearInterval(interval);
+                        isTyping = false;
+                        if (callback) callback();
+                    }
+                }, typingSpeed);
+            }
+
+            function displayBotResponse(response) {
+            var responseElement = document.createElement('div');
+            responseElement.innerText = 'Bot: ' + response;
+            $('#chatbox').append(responseElement);
+            }
+
+
+            $('#inputbox').on('keypress', function(e) {
+                if (e.which == 13 && !isTyping) {  // enter key
+                    var question = $('#inputbox').val();
+                    typeMessage('\nYou: ' + question + '\n');
+                    $('#inputbox').val('');
+
+                    $.ajax({
+                        url: '/ask',
+                        type: 'post',
+                        contentType: 'application/json',
+                        data: JSON.stringify({ "question": question }),
+                        success: function(data) {
+                            console.log('Received Response:', data);  // Log the received response
+                            displayBotResponse(data.answer);
+                        },
+                    });
+                }
+            });
+        </script>
+    </body>
+</html>
